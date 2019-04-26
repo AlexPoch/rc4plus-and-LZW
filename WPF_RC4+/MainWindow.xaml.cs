@@ -142,7 +142,6 @@ namespace WPF_RC4_
                 }
                 cypherKey.Text += Encoding.Default.GetString(tripleDES.Key);
             }
-            MessageBox.Show(cypherKey.Text.Length.ToString());
         }
 
         private void Encode(object sender, RoutedEventArgs e)
