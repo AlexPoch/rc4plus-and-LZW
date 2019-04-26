@@ -38,38 +38,38 @@
         <GroupBox Header="Блок шифрования" Padding="5" Width="380" HorizontalAlignment="Left" Margin="10 10 10 10">
             <StackPanel>
                 <Button Content="Выбрать файл для шифрования/дешифрования" Width="338" Height="30" HorizontalAlignment="Left" Margin="10,10,0,10" Click="ChooseFile"/>
-                <Label x:Name="chosenFileChypr" Content="Выбранный файл:" Margin="10,0,0,0" HorizontalAlignment="Left" Width="358"/>
-                <CheckBox Content="Перенести путь обрабатываемого файла на блок сжатия" Margin="10 10 0 10" Checked="CheckBox_Checked"/>
+                <Label x:Name="chosenFileChypr" Content="Файл для шифрования/дешифрования не выбран." Margin="10,0,0,0" HorizontalAlignment="Left" Width="358"/>
+                <CheckBox Content="Перенести путь обрабатываемого файла на блок сжатия" Margin="10 10 0 10" Checked="CheckBox_Checked" Unchecked="CheckBox_Unchecked"/>
                 <Label Content="Ключ для шифрования:"></Label>
-                <TextBox Style="{StaticResource MyWaterMarkStyle}" Tag='Введите ключ или нажмите "Сгенерировать ключ"' Name="cypherKey" TextChanged="CypherKey_TextChanged"  Width="338" Height="30" HorizontalAlignment="Left" Margin="10,10,0,10"/>
+                <TextBox Style="{StaticResource MyWaterMarkStyle}" Tag='Введите ключ или нажмите "Сгенерировать ключ"' Name="cypherKey" Width="338" Height="30" HorizontalAlignment="Left" Margin="10,10,0,10"/>
                 <Button Content="Сгенерировать ключ"  Width="338" Height="30" HorizontalAlignment="Left" Margin="10,10,0,10" Click="Generate_Key"/>
                 <Grid>
                     <Button Content="Зашифровать" Width="165" Height="30" HorizontalAlignment="Left" Margin="10,10,0,10" Click="Encode"/>
-                    <Button Content="Показать файл" Width="165" Height="30" HorizontalAlignment="Right" Margin="10,10,10,10"/>
+                    <Button Content="Показать файл" Width="165" Height="30" HorizontalAlignment="Right" Margin="10,10,10,10" Click="encShowFile"/>
                 </Grid>
-                <Label x:Name="label1" Content="Зашифровало:" Margin="10,0,0,0" HorizontalAlignment="Left" Width="360"/>
+                <Label x:Name="encLabel1" Content="Зашифровало:" Margin="10,0,0,0" HorizontalAlignment="Left" Width="360"/>
                 <Grid>
                     <Button Content="Расшифровать" Width="165" Height="30" HorizontalAlignment="Left" Margin="10,10,0,10" Click="Decode"/>
-                    <Button Content="Показать файл" Width="165" Height="30" HorizontalAlignment="Right" Margin="10,10,10,10"/>
+                    <Button Content="Показать файл" Width="165" Height="30" HorizontalAlignment="Right" Margin="10,10,10,10" Click="decShowFile"/>
                 </Grid>
-                <Label x:Name="label2" Content="Расшифровало:" Margin="10,0,0,0" HorizontalAlignment="Left" Width="358"/>
+                <Label x:Name="decLabel1" Content="Расшифровало:" Margin="10,0,0,0" HorizontalAlignment="Left" Width="358"/>
             </StackPanel>
         </GroupBox>
         <GroupBox Header="Блок сжатия" Padding="5" Width="380" HorizontalAlignment="right" Margin="10 10 10 10">
             <StackPanel>
                 <StackPanel>
                     <Button Content="Выбрать файл для сжатия/распаковки" Width="338" Height="30" HorizontalAlignment="Left" Margin="10,10,0,10" Click="ChooseCompressFile"/>
-                    <Label x:Name="chosenFileCompress" Content="Выбранный файл:" Margin="10,10,0,0" HorizontalAlignment="Left" Width="360"/>
+                    <Label x:Name="chosenFileCompress" Content="Файл для сжатия/распаковки не выбран." Margin="10,10,0,0" HorizontalAlignment="Left" Width="360"/>
                     <Grid>
-                        <Button Content="Сжать файл" Width="165" Height="30" HorizontalAlignment="Left" Margin="10,10,0,10"/>
-                        <Button Content="Показать файл" Width="165" Height="30" HorizontalAlignment="Right" Margin="10,10,10,10"/>
+                        <Button Content="Сжать файл" Width="165" Height="30" HorizontalAlignment="Left" Margin="10,10,0,10" Click="Compress"/>
+                        <Button Content="Показать файл" Width="165" Height="30" HorizontalAlignment="Right" Margin="10,10,10,10" Click="comShowFile"/>
                     </Grid>
-                    <Label x:Name="label4" Content="Зашифровало:" Margin="10,0,0,0" HorizontalAlignment="Left" Width="360"/>
+                    <Label x:Name="comLabel1" Content="Сжало:" Margin="10,0,0,0" HorizontalAlignment="Left" Width="360"/>
                     <Grid>
-                        <Button Content="Распаковать файл" Width="165" Height="30" HorizontalAlignment="Left" Margin="10,10,0,10"/>
-                        <Button Content="Показать файл" Width="165" Height="30" HorizontalAlignment="Right" Margin="10,10,10,10"/>
+                        <Button Content="Распаковать файл" Width="165" Height="30" HorizontalAlignment="Left" Margin="10,10,0,10" Click="Decompress"/>
+                        <Button Content="Показать файл" Width="165" Height="30" HorizontalAlignment="Right" Margin="10,10,10,10" Click="decomShowFile"/>
                     </Grid>
-                    <Label x:Name="label5" Content="Расшифровало:" Margin="10,0,0,0" HorizontalAlignment="Left" Width="360"/>
+                    <Label x:Name="decomLabel1" Content="Распаковало:" Margin="10,0,0,0" HorizontalAlignment="Left" Width="360"/>
                 </StackPanel>
             </StackPanel>
         </GroupBox>

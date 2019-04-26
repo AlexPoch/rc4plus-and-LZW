@@ -15,7 +15,8 @@ using System.Windows.Shapes;
 using System.IO;
 using System.Security.Cryptography;
 using SharpLZW;
-using Validator; 
+using Validator;
+using System.Diagnostics;
 
 namespace WPF_RC4_
 {
@@ -24,7 +25,8 @@ namespace WPF_RC4_
     /// </summary>
     public partial class MainWindow : Window
     {
-        private static bool processStart = false;
+
+        public static long sizeOfSourceMess;
         bool checBoxChecked = false;
         string fileExtension;
         static string filenameEnc;
@@ -56,6 +58,14 @@ namespace WPF_RC4_
                 }
 
                 fileExtension = System.IO.Path.GetExtension(filenameEnc);
+
+                string root = @"D:\RealEncAndCom";
+                if (!Directory.Exists(root))
+                {
+                    Directory.CreateDirectory(root);
+                }
+                File.Delete(@"D:\RealEncAndCom\EncFile" + fileExtension);
+                File.Copy(filenameEnc, @"D:\RealEncAndCom\EncFile" + fileExtension);
             }
         }
 
@@ -74,6 +84,15 @@ namespace WPF_RC4_
             }
             
             fileExtension = System.IO.Path.GetExtension(filenameCom);
+
+            string root = @"D:\RealEncAndCom";
+            if (!Directory.Exists(root))
+            {
+                Directory.CreateDirectory(root);
+            }
+
+            File.Delete(@"D:\RealEncAndCom\ComFile" + fileExtension);
+            File.Copy(filenameEnc, @"D:\RealEncAndCom\ComFile" + fileExtension);
         }
         
         private void CheckBox_Checked(object sender, RoutedEventArgs e)
@@ -82,16 +101,31 @@ namespace WPF_RC4_
             if(checkBox.IsChecked == true)
             {
                 checBoxChecked = true;
-            }
-            else
-            {
-                checBoxChecked = false;
+                filenameCom = filenameEnc;
+                if(filenameCom == null)
+                {
+                    chosenFileCompress.Content = "Файл для сжатия/распаковки не выбран" + filenameCom;
+                }
+                else
+                {
+                    chosenFileCompress.Content = "Выбранный файл: " + filenameCom;
+                }
             }
         }
 
-        private void CypherKey_TextChanged(object sender, TextChangedEventArgs e)
+        private void CheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
+            CheckBox checkBox = (CheckBox)sender;
+            if (checkBox.IsChecked == false)
+            {
+                checBoxChecked = false;
+                filenameCom = null;
 
+                if((string)chosenFileCompress.Content == "Файл для сжатия/распаковки не выбран.")
+                {
+                    chosenFileCompress.Content = "Файл для сжатия/распаковки не выбран.";
+                }
+            }
         }
 
         private void Generate_Key(object sender, RoutedEventArgs e)
@@ -117,51 +151,59 @@ namespace WPF_RC4_
             {
                 string key = cypherKey.Text;
                 string fileToEncode = filenameEnc;
-                string encodePath = @"noteEncode.txt";
-                File.Delete(encodePath);
-
+                string encodePath = @"D:\RealEncAndCom\noteEncode.txt";
                 InfoAboutFile file = new InfoAboutFile();
 
-                do
-                {
-                    getPlainText(file, fileToEncode);
+                File.Delete(encodePath);
+                getPlainText(file, fileToEncode, true);
+                string encodedText = rc4plus(file.plainText, key);
+                processText(encodePath, encodedText, true);
 
-                    string encodedText = rc4plus(file.plainText, key);
-                    byte[] justArray = System.Text.Encoding.Default.GetBytes(encodedText);
-                    string justStr = System.Text.Encoding.Default.GetString(justArray);
-                    string decoded = rc4plus(justStr, key);
-                    processText(encodePath, encodedText);
-                }
-                while (processStart);
+                encLabel1.Content = "Файл был зашифрован!";
+            }
+            else
+            {
+                encLabel1.Content = "Файл не был зашифрован";
             }
         }
 
         private void Decode(object sender, RoutedEventArgs e)
         {
-            string key = cypherKey.Text;
-            string fileToDecode = @"noteEncode.txt";
-            string decodedPath = @"noteDecode.txt";
-            File.Delete(decodedPath);
-
-            InfoAboutFile encodedFile = new InfoAboutFile();
-
-            do
+            if (!filenameEnc.fileIsEmpty() && !cypherKey.Text.fileIsEmpty())
             {
-                getPlainText(encodedFile, fileToDecode);
+                string key = cypherKey.Text;
+                string fileToDecode = @"D:\RealEncAndCom\noteEncode.txt";
+                string decodedPath = @"D:\RealEncAndCom\noteDecode" + fileExtension; 
+                InfoAboutFile encodedFile = new InfoAboutFile();
+
+                File.Delete(decodedPath);
+                getPlainText(encodedFile, fileToDecode, false);
                 string decodedText = rc4plus(encodedFile.plainText, key);
-                byte[] encB = System.Text.Encoding.Default.GetBytes(decodedText);
-                string iif = System.Text.Encoding.Default.GetString(encB);
-                processText(decodedPath, decodedText);
+                decodedText = decodedText.Substring(0, (int)sizeOfSourceMess);
+                processText(decodedPath, decodedText, false);
+                decLabel1.Content = "Файл был расшифрован!";
             }
-            while (processStart);
+            else
+            {
+                decLabel1.Content = "Файл не был расшифрован!";
+            }
         }
 
-        private static void processText(string address, string text)
+        private static void processText(string address, string text, bool procType)
         {
-            using (FileStream fstream = new FileStream(address, FileMode.Append))
+            if (procType)
             {
-                byte[] array = System.Text.Encoding.Default.GetBytes(text);
-                fstream.Write(array, 0, array.Length);
+                using (StreamWriter fstream = new StreamWriter(address, false, Encoding.UTF8))
+                {
+                    fstream.Write(text);
+                }
+            }
+            else
+            {
+                using (StreamWriter fstream = new StreamWriter(address, false, Encoding.Default))
+                {
+                    fstream.Write(text);
+                }
             }
         }//adding text to encrypted/decrypted files by block
 
@@ -173,42 +215,31 @@ namespace WPF_RC4_
             chiper = PRGA(vars, slovo);
             return chiper;
         }
-        
-        private static void getPlainText(InfoAboutFile info, string fileToEncode) // if file size more than 256 bytes, then need read file few times and return part of file
+
+        private static void getPlainText(InfoAboutFile info, string fileToEncode, bool procType) // if file size more than 256 bytes, then need read file few times and return part of file
         {
-            byte[] array;
-
-            using (FileStream fstream = new FileStream(fileToEncode, FileMode.Open))
+            char[] array;
+            if (procType)
             {
-                if (fstream.Length > 256)
+                using (StreamReader fstream = new StreamReader(fileToEncode, Encoding.Default))
                 {
-                    processStart = true;
-
-                    if (256 * (info.cyclicReRead + 1) < fstream.Length)
-                    {
-                        info.fileSize = 256;
-                        array = new byte[256];
-                        fstream.Seek(256 * info.cyclicReRead, SeekOrigin.Begin);
-                        fstream.Read(array, 0, 256);
-                    }
-                    else
-                    {
-                        info.fileSize = fstream.Length - 256 * info.cyclicReRead;
-                        array = new byte[info.fileSize];
-                        fstream.Seek(256 * info.cyclicReRead, SeekOrigin.Begin);
-                        fstream.Read(array, 0, (int)(info.fileSize));
-                        processStart = false;
-                    }
-
-                    info.cyclicReRead++;
-                    info.plainText = System.Text.Encoding.Default.GetString(array);
-                }
-                else
-                {
-                    info.fileSize = fstream.Length;
-                    array = new byte[info.fileSize];
+                    Console.WriteLine("read File to encode");
+                    Console.WriteLine(fstream.BaseStream.Length);
+                    sizeOfSourceMess = fstream.BaseStream.Length;
+                    array = new char[fstream.BaseStream.Length];
                     fstream.Read(array, 0, array.Length);
-                    info.plainText = System.Text.Encoding.Default.GetString(array);
+                    info.plainText = new string(array);
+                }
+            }
+            else
+            {
+                using (StreamReader fstream = new StreamReader(fileToEncode, Encoding.UTF8))
+                {
+                    Console.WriteLine("read File to decode");
+                    Console.WriteLine(fstream.BaseStream.Length);
+                    array = new char[fstream.BaseStream.Length];
+                    fstream.Read(array, 0, array.Length);
+                    info.plainText = new string(array);
                 }
             }
         }
@@ -244,6 +275,77 @@ namespace WPF_RC4_
             }
 
             return vars.a;
+        }
+
+        private void Compress(object sender, RoutedEventArgs e)
+        {
+            if (!filenameCom.fileIsEmpty())
+            {
+                string noteCompressed = @"D:\RealEncAndCom\noteCompressed.txt";
+                File.Delete(noteCompressed);
+                ANSI ascii = new ANSI();
+                LZWEncoder encoder = new LZWEncoder();
+
+                string text = File.ReadAllText(filenameCom, System.Text.Encoding.Default);
+                ascii.WriteToFile();
+                byte[] b = encoder.EncodeToByteList(text);
+                File.WriteAllBytes(noteCompressed, b);
+                comLabel1.Content = "Файл был сжат!";
+            }
+            else
+            {
+                comLabel1.Content = "Файл не был сжат!";
+            }
+        }
+
+        private void Decompress(object sender, RoutedEventArgs e)
+        {
+            if (!filenameCom.fileIsEmpty())
+            {
+                string noteCompressed = @"D:\RealEncAndCom\noteCompressed.txt";
+                string noteDecompressed = @"D:\RealEncAndCom\noteDecompressed" + fileExtension;
+
+                File.Delete(noteDecompressed);
+                LZWDecoder decoder = new LZWDecoder();
+
+                byte[] bo = File.ReadAllBytes(noteCompressed);
+                string decodedOutput = decoder.DecodeFromCodes(bo);
+                File.WriteAllText(noteDecompressed, decodedOutput, System.Text.Encoding.Default);
+                decomLabel1.Content = "Файл был распакован!";
+            }
+            else
+            {
+                decomLabel1.Content = "Файл не был распокван!";
+            }
+        }
+
+        private void encShowFile(object sender, RoutedEventArgs e)
+        {
+            string path = @"D:\RealEncAndCom\noteEncode.txt";
+            string cmd = "explorer.exe";
+            string arg = "/select, " + path;
+            Process.Start(cmd, arg);
+        }
+        private void decShowFile(object sender, RoutedEventArgs e)
+        {
+            string path = @"D:\RealEncAndCom\noteDecode" + fileExtension;
+            string cmd = "explorer.exe";
+            string arg = "/select, " + path;
+            Process.Start(cmd, arg);
+        }
+        private void comShowFile(object sender, RoutedEventArgs e)
+        {
+            string path = @"D:\RealEncAndCom\noteCompressed.txt";
+            string cmd = "explorer.exe";
+            string arg = "/select, " + path;
+            Process.Start(cmd, arg);
+        }
+        private void decomShowFile(object sender, RoutedEventArgs e)
+        {
+            string path = @"D:\RealEncAndCom\noteDecompressed" + fileExtension;
+            string cmd = "explorer.exe";
+            string arg = "/select, " + path;
+            Process.Start(cmd, arg);
         }
     }
 }
